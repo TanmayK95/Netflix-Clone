@@ -1,23 +1,64 @@
-import logo from './logo.svg';
+
 import './App.css';
+// import Row from './Row';
+// import requests from './requests';
+// import Banner from './Banner';
+// import Nav from './Nav';
+import React, {useEffect} from 'react';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from "react-router-dom";
+import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import { auth } from './firebase';
+import {useDispatch, useSelector} from "react-redux";
+import {login , logout, selectUser} from "./features/counter/userSlice.js"
 
 function App() {
+  const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+
+  useEffect(() =>{
+    const unsubscribe = auth.onAuthStateChanged(userAuth => {
+      if(userAuth){
+        //Loggedin
+        console.log(userAuth)
+        dispatch(login({
+          uid:userAuth.uid,
+          email: userAuth.email,
+        }))
+      }
+      else{
+        //Logged out
+        dispatch(logout());
+      }
+    })
+
+    return unsubscribe;
+  }, [dispatch] )
+
+  
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      {!user ? (
+        <LoginScreen/>
+      ):(
+        <Router>
+          <Switch>
+            <Route path="/profile">
+              <ProfileScreen/>
+            </Route>
+            <Route path="/">
+              <HomeScreen/>
+
+            </Route>
+          </Switch>
+        </Router>
+      )}
+      
     </div>
   );
 }
